@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Proyecto Arduino | Puerta Automática</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --secondary: #3498db;
+      --accent: #e74c3c;
+      --light: #ffffff;
+      --dark: #2c3e50;
+      --gray: #ecf0f1;
+      --bg-color: #ffffff;
+      --text-color: #2c3e50;
+      --card-bg: #ffffff;
+      --transition: all 0.4s ease;
+    }
+
+    [data-theme="dark"] {
+      --primary: #3498db;
+      --secondary: #2ecc71;
+      --accent: #e74c3c;
+      --light: #1a1a1a;
+      --dark: #f8f9fa;
+      --gray: #2d3748;
+      --bg-color: #121212;
+      --text-color: #f8f9fa;
+      --card-bg: #1e1e1e;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      transition: var(--transition);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      background: var(--card-bg);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-titulo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo-titulo img {
+      height: 50px;
+    }
+
+    .logo-titulo h1 {
+      font-size: 1.8rem;
+      color: var(--primary);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    nav a {
+      color: var(--text-color);
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    nav a:hover {
+      color: var(--secondary);
+    }
+
+    nav a.active {
+      color: var(--secondary);
+    }
+
+    nav a.active:after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--secondary);
+    }
+
+    /* Theme Switch */
+    .theme-switch {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      background: var(--gray);
+      border-radius: 25px;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    [data-theme="dark"] .theme-switch {
+      background: #34495e;
+    }
+
+    .theme-icons {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      pointer-events: none;
+    }
+
+    .theme-icons i {
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+
+    .theme-icons .fa-sun {
+      color: #f39c12;
+    }
+
+    .theme-icons .fa-moon {
+      color: #34495e;
+    }
+
+    [data-theme="dark"] .theme-icons .fa-moon {
+      color: #f1c40f;
+    }
+
+    /* Main Content */
+    main {
+      width: 90%;
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 2rem 0;
+    }
+
+    section {
+      margin-bottom: 4rem;
+    }
+
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    h3 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: var(--secondary);
+    }
+
+    p {
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 3rem 0;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+
+    .hero p {
+      font-size: 1.3rem;
+      max-width: 800px;
+      margin: 0 auto 2rem;
+      color: var(--text-color);
+    }
+
+    .video-container {
+      max-width: 800px;
+      margin: 0 auto;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .video-container video {
+      width: 100%;
+      display: block;
+    }
+
+    /* Cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .card h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .card h3 i {
+      color: var(--secondary);
+    }
+
+    /* Team Section */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .team-member {
+      text-align: center;
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transition: var(--transition);
+    }
+
+    .team-member:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .member-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--secondary), #2980b9);
+      margin: 0 auto 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: white;
+    }
+
+    .member-name {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+
+    .member-role {
+      color: var(--secondary);
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    /* Demo Section */
+    .circuit-image {
+      max-width: 800px;
+      margin: 2rem auto;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .circuit-image img {
+      width: 100%;
+      display: block;
+    }
+
+    .materials-list {
+      max-width: 600px;
+      margin: 2rem auto;
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .materials-list ul {
+      list-style-type: none;
+    }
+
+    .materials-list li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .materials-list li:last-child {
+      border-bottom: none;
+    }
+
+    .materials-list i {
+      color: var(--secondary);
+    }
+
+    /* Contact Section */
+    .youtube-channel {
+      text-align: center;
+      max-width: 600px;
+      margin: 2rem auto;
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .youtube-channel h3 {
+      margin-bottom: 1.5rem;
+    }
+
+    .youtube-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #ff0000;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: var(--transition);
+      margin-top: 1rem;
+    }
+
+    .youtube-btn:hover {
+      background: #cc0000;
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(255,0,0,0.3);
+    }
+
+    /* Footer */
+    footer {
+      background: #2c3e50;
+      color: #ffffff;
+      padding: 3rem 0 1rem;
+      margin-top: 4rem;
+    }
+
+    .footer-content {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .footer-column h3 {
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      padding-bottom: 10px;
+      color: white;
+    }
+
+    .footer-column h3:after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 40px;
+      height: 3px;
+      background: #3498db;
+    }
+
+    .footer-column a,
+    .footer-column p {
+      color: #bdc3c7;
+      margin-bottom: 10px;
+      display: block;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .footer-column a:hover {
+      color: #3498db;
+      padding-left: 5px;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .social-link {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      transition: 0.3s;
+      text-decoration: none;
+    }
+
+    .social-link:hover {
+      background: #3498db;
+      transform: translateY(-3px);
+    }
+
+    .copyright {
+      text-align: center;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: #bdc3c7;
+      font-size: 0.9rem;
+    }
+
+    /* Animations */
+    .reveal {
+      opacity: 0;
+      transform: translateY(50px);
+      transition: all 1s ease;
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h2.reveal, h3.reveal, p.reveal {
+      animation: fadeInUp 1s ease forwards;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header-container {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      nav {
+        gap: 1rem;
+      }
+
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
+      h2 {
+        font-size: 2rem;
+      }
+
+      .cards, .team-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <div class="logo-titulo">
+        <img src="img/logo.jpeg" alt="Proyecto Arduino Logo">
+        <h1>DOOR-TECH</h1>
+      </div>
+
+      <nav>
+        <a href="index.html">Inicio</a>
+        <a href="nosotros.html">Equipo</a>
+        <a href="proyectos.html">Proyecto</a>
+        <a href="demo.html">Demo</a>
+        <a href="contacto.html">Contacto</a>
+        <div class="theme-switch" id="themeToggle">
+          <div class="theme-icons">
+            <i class="fas fa-sun"></i>
+            <i class="fas fa-moon"></i>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1 class="reveal">DOOR-TECH</h1>
+      <p class="reveal">Proyecto: Puerta Automática con Arduino</p>
+      
+      <div class="video-container reveal">
+        <video autoplay muted loop>
+          <source src="img/video presentacion.mp4" type="video/mp4">
+          Tu navegador no soporta el elemento de video.
+        </video>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="reveal">Sobre el Proyecto</h2>
+      <p class="reveal">Este proyecto académico consiste en el desarrollo de una puerta automática controlada por Arduino para el acceso vehicular en estacionamientos. Utiliza un sensor ultrasónico (HC-SR04) para detectar vehículos y un servomotor para abrir o cerrar la barrera automáticamente.</p>
+      
+      <div class="cards">
+        <div class="card reveal">
+          <h3><i class="fa-solid fa-bullseye"></i> Objetivo General</h3>
+          <p>Automatizar mediante la implementación de Arduino un sistema de puerta automática que permita detectar la presencia de vehículos y controlar el acceso a un estacionamiento de manera segura, eficiente y automatizada.</p>
+        </div>
+        
+        <div class="card reveal">
+          <h3><i class="fa-solid fa-list-check"></i> Objetivos Específicos</h3>
+          <ul>
+            <li>Implementar un sensor ultrasónico para detectar vehículos</li>
+            <li>Programar el Arduino para procesar señales y activar la apertura automática</li>
+            <li>Integrar un servomotor que realice el movimiento de la puerta</li>
+            <li>Diseñar un circuito seguro y funcional para todos los componentes</li>
+            <li>Evaluar el rendimiento del prototipo en pruebas de acceso vehicular</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-column">
+        <h3>PROYECTO ARDUINO</h3>
+        <p>Puerta automática con Arduino para control de acceso vehicular.</p>
+        <div class="social-links">
+          <a href="https://www.youtube.com/@Door-TechINC" class="social-link"><i class="fab fa-youtube"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-column">
+        <h3>Enlaces</h3>
+        <a href="index.html">Inicio</a>
+        <a href="nosotros.html">Equipo</a>
+        <a href="proyectos.html">Proyecto</a>
+        <a href="demo.html">Demo</a>
+      </div>
+
+      <div class="footer-column">
+        <h3>Materiales</h3>
+        <a href="#">Arduino UNO</a>
+        <a href="#">Servomotor</a>
+        <a href="#">Sensor Ultrasónico</a>
+        <a href="#">Componentes Electrónicos</a>
+      </div>
+
+      <div class="footer-column">
+        <h3>Institución</h3>
+        <p>Universidad Popular de la Chontalpa</p>
+        <p>Ingeniería en Tecnologías de la Información y Comunicación</p>
+        <p>5° A</p>
+      </div>
+    </div>
+
+    <div class="copyright">
+      © 2025 Proyecto Arduino - Puerta Automática. Todos los derechos reservados.
+    </div>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealOnScroll = () => {
+      revealElements.forEach(el => {
+        const top = el.getBoundingClientRect().top;
+        if (top < window.innerHeight - 150) {
+          el.classList.add('active');
+        }
+      });
+    };
+    window.addEventListener('scroll', revealOnScroll);
+    revealOnScroll();
+
+    // Tema claro/oscuro
+    const themeToggle = document.getElementById('themeToggle');
+    const root = document.documentElement;
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    root.setAttribute('data-theme', savedTheme);
+
+    // Partículas
+    function createThemeParticles() {
+      const colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12'];
+      for (let i = 0; i < 20; i++) {
+        const p = document.createElement('div');
+        p.style.position = 'fixed';
+        p.style.width = '8px';
+        p.style.height = '8px';
+        p.style.background = colors[Math.floor(Math.random()*colors.length)];
+        p.style.borderRadius = '50%';
+        p.style.left = '50%';
+        p.style.top = '50%';
+        p.style.zIndex = '9999';
+        p.style.pointerEvents = 'none';
+        p.style.animation = `particleFloat ${Math.random()*1+0.5}s ease-out forwards`;
+        document.body.appendChild(p);
+        setTimeout(()=>p.remove(),1000);
+      }
+    }
+
+    themeToggle.addEventListener('click', ()=>{
+      const current = root.getAttribute('data-theme');
+      const next = current === 'light' ? 'dark' : 'light';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      createThemeParticles();
+    });
+  </script>
+</body>
+</html>
